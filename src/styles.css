@@ -722,6 +722,23 @@ table.table.table-bordered th{
 .detail-section{
     margin-top:60px
 }
+
+.detail-img{
+    width: 30%;
+}
+
+/* 
+* -----------------------------
+* ngb-pagination CUSTOM STYLING
+* ------------------------------
+*/
+ngb-pagination .page-item.active .page-link {
+    background-color:#0da8e4;    
+}
+
+ngb-pagination .page-item:not(.active) .page-link {
+    color:#0da8e4;
+}
 /**/
 
 /* 

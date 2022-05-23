@@ -11,11 +11,21 @@ import { ProductService } from 'src/app/services/product.service';
 export class ProductListComponent implements OnInit {
 
   products: Product[];
-  currentCategoryId: number;
-  searchMode: boolean;
+  currentCategoryId: number = 1;
+  previousCategoryId: number = 1;
+  searchMode: boolean = false;
+  currentKeyword: string = "";
+  previousKeyword: string = "";
+
+  // pagination
+  pageNumber: number = 1;
+  pageSize: number = 10;
+  totalElements: number = 0;
+
+
 
   constructor(
-    private productServcie: ProductService, 
+    private productService: ProductService, 
     private route: ActivatedRoute
     ) { 
 
@@ -25,6 +35,12 @@ export class ProductListComponent implements OnInit {
     this.route.params.subscribe(() => {
       this.listProducts();
     });
+  }
+
+  updatePageSize(event: Event){
+    this.pageSize = Number((event.target as HTMLInputElement).value);
+    this.pageNumber = 1;
+    this.listProducts();
   }
 
   handleListProducts(){
@@ -37,21 +53,36 @@ export class ProductListComponent implements OnInit {
     else{
       this.currentCategoryId = 1;
     }
-    
-    this.productServcie.getProductList(this.currentCategoryId).subscribe(
-      data => {
-        this.products = data;
-      }
-    );
+
+    // check if we have a differnt category than previous then reset pagenumber to 1
+    if (this.previousCategoryId != this.currentCategoryId){
+      this.pageNumber = 1;
+    }
+    this.previousCategoryId = this.currentCategoryId;
+
+    this.productService
+    .getProductListPaginate(this.pageNumber - 1, this.pageSize, this.currentCategoryId)
+    .subscribe(data => this.processGetResponseProducts(data));
+  }
+
+  processGetResponseProducts(data: any){
+      this.products = data._embedded.products;
+      this.pageNumber = data.page.number + 1;
+      this.pageSize = data.page.size;
+      this.totalElements = data.page.totalElements;
   }
 
   handleSearchProducts(){
     const keyword = String(this.route.snapshot.paramMap.get("keyword"));
-    this.productServcie.searchProducts(keyword).subscribe(
-      data => {
-        this.products = data;
-      }
-    );
+        // check if we have a differnt category than previous then reset pagenumber to 1
+    if (this.previousKeyword != this.currentKeyword){
+      this.pageNumber = 1;
+    }
+    this.previousKeyword = this.currentKeyword;
+
+    this.productService
+      .searchProductsPaginate(this.pageNumber - 1, this.pageSize, this.currentKeyword)
+      .subscribe(data => this.processGetResponseProducts(data));
   }
 
   listProducts() {
